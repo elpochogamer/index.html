@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trading Checklist — NAS/SP500</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --border: #1e1e2e;
+    --accent: #00ff88;
+    --accent2: #ff4466;
+    --accent3: #ffaa00;
+    --text: #e0e0f0;
+    --muted: #555570;
+    --green: #00ff88;
+    --red: #ff4466;
+    --yellow: #ffaa00;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    min-height: 100vh;
+    padding: 20px;
+    background-image: 
+      radial-gradient(ellipse at 20% 20%, rgba(0,255,136,0.04) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 80%, rgba(255,68,102,0.04) 0%, transparent 50%);
+  }
+
+  .header {
+    text-align: center;
+    margin-bottom: 32px;
+    padding: 24px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .header h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--accent);
+    text-shadow: 0 0 30px rgba(0,255,136,0.3);
+  }
+
+  .header p {
+    color: var(--muted);
+    font-size: 0.75rem;
+    margin-top: 6px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .session-selector {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+  }
+
+  .session-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 8px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transition: all 0.2s;
+  }
+
+  .session-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .session-btn.active { background: rgba(0,255,136,0.1); border-color: var(--accent); color: var(--accent); }
+  .session-btn.ny.active { background: rgba(0,255,136,0.1); border-color: var(--accent); color: var(--accent); }
+  .session-btn.asia.active { background: rgba(255,170,0,0.1); border-color: var(--yellow); color: var(--yellow); }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  @media (max-width: 700px) { .grid { grid-template-columns: 1fr; } }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+  }
+
+  .card.bias::before { background: linear-gradient(90deg, var(--accent), transparent); }
+  .card.entry::before { background: linear-gradient(90deg, var(--accent3), transparent); }
+  .card.risk::before { background: linear-gradient(90deg, var(--accent2), transparent); }
+  .card.session::before { background: linear-gradient(90deg, #8888ff, transparent); }
+
+  .card-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .card-title .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+  }
+  .bias .dot { background: var(--accent); }
+  .entry .dot { background: var(--accent3); }
+  .risk .dot { background: var(--accent2); }
+  .session .dot { background: #8888ff; }
+
+  .check-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    cursor: pointer;
+    transition: all 0.15s;
+    border-radius: 4px;
+    padding-left: 4px;
+  }
+
+  .check-item:last-child { border-bottom: none; }
+  .check-item:hover { background: rgba(255,255,255,0.02); }
+
+  .checkbox {
+    width: 18px; height: 18px;
+    border: 1.5px solid var(--muted);
+    border-radius: 3px;
+    flex-shrink: 0;
+    margin-top: 1px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    font-size: 11px;
+  }
+
+  .check-item.checked .checkbox {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #000;
+    box-shadow: 0 0 10px rgba(0,255,136,0.3);
+  }
+
+  .check-item.checked .check-text { color: var(--muted); text-decoration: line-through; }
+
+  .check-text {
+    font-size: 0.72rem;
+    line-height: 1.5;
+    color: var(--text);
+    transition: all 0.2s;
+  }
+
+  .check-text strong {
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  .check-text .tag {
+    display: inline-block;
+    background: rgba(255,170,0,0.15);
+    color: var(--yellow);
+    font-size: 0.6rem;
+    padding: 1px 6px;
+    border-radius: 3px;
+    margin-left: 4px;
+    vertical-align: middle;
+  }
+
+  .progress-bar {
+    max-width: 900px;
+    margin: 0 auto 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .bar-track {
+    flex: 1;
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), #00ccff);
+    border-radius: 3px;
+    transition: width 0.4s cubic-bezier(0.4,0,0.2,1);
+    box-shadow: 0 0 10px rgba(0,255,136,0.4);
+    width: 0%;
+  }
+
+  .bar-fill.danger { background: linear-gradient(90deg, var(--accent2), var(--accent3)); }
+
+  .progress-label {
+    font-size: 0.7rem;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  .progress-count {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--accent);
+    min-width: 40px;
+    text-align: right;
+  }
+
+  .verdict {
+    max-width: 900px;
+    margin: 20px auto 0;
+    border-radius: 8px;
+    padding: 18px 24px;
+    text-align: center;
+    font-family: 'Syne', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    display: none;
+    animation: fadeIn 0.4s ease;
+  }
+
+  .verdict.show { display: block; }
+  .verdict.go { background: rgba(0,255,136,0.1); border: 1px solid var(--accent); color: var(--accent); }
+  .verdict.wait { background: rgba(255,68,102,0.1); border: 1px solid var(--accent2); color: var(--accent2); }
+  .verdict.almost { background: rgba(255,170,0,0.1); border: 1px solid var(--yellow); color: var(--yellow); }
+
+  .reset-btn {
+    display: block;
+    margin: 16px auto 0;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 8px 24px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    transition: all 0.2s;
+  }
+
+  .reset-btn:hover { border-color: var(--accent2); color: var(--accent2); }
+
+  .mandatory-note {
+    font-size: 0.6rem;
+    color: var(--accent2);
+    margin-top: 4px;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .full-width { grid-column: 1 / -1; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>TRADE CHECKLIST</h1>
+  <p>NAS100 / SP500 · SMC + Liquidity Sweep Model</p>
+</div>
+
+<div class="session-selector">
+  <button class="session-btn ny active" onclick="setSession('ny')">🗽 NY Open (9:30am)</button>
+  <button class="session-btn ny" onclick="setSession('pre-ny')">⚡ Pre-NY (8:00am)</button>
+  <button class="session-btn asia" onclick="setSession('asia')">🌏 Asia (10:00pm)</button>
+</div>
+
+<div class="progress-bar">
+  <span class="progress-label">Completado</span>
+  <div class="bar-track"><div class="bar-fill" id="barFill"></div></div>
+  <span class="progress-count" id="progressCount">0/0</span>
+</div>
+
+<div class="grid" id="checklistGrid"></div>
+
+<div class="verdict" id="verdict"></div>
+<button class="reset-btn" onclick="resetAll()">↺ Reset para nuevo trade</button>
+
+<script>
+const checklists = {
+  bias: {
+    title: "Bias & Dirección",
+    type: "bias",
+    items: [
+      { id: "b1", text: "<strong>H4 bias definido</strong> — ¿el precio está haciendo HH/HL (bullish) o LH/LL (bearish)?", mandatory: true },
+      { id: "b2", text: "<strong>H1 alineado con H4</strong> — no operar en contra de H4 nunca", mandatory: true },
+      { id: "b3", text: "Identificado el <strong>rango del día</strong> — high y low claros de referencia", mandatory: true },
+      { id: "b4", text: "Definido si estamos en <strong>Premium o Discount</strong> del rango (50% = equilibrio)", mandatory: true },
+      { id: "b5", text: "¿Hay noticias económicas hoy? <span class='tag'>FOMC / NFP = NO OPERAR</span>", mandatory: false },
+    ]
+  },
+  sweep: {
+    title: "Liquidity Sweep",
+    type: "entry",
+    items: [
+      { id: "s1", text: "<strong>Sweep confirmado</strong> — el precio barrió liquidez (highs/lows previos, equal highs/lows)", mandatory: true },
+      { id: "s2", text: "El sweep <strong>fue rechazado</strong> — no solo tocó, se revirtió con fuerza", mandatory: true },
+      { id: "s3", text: "El sweep está en zona de <strong>Premium (para shorts) o Discount (para longs)</strong>", mandatory: true },
+      { id: "s4", text: "Visible en <strong>H1 o M15</strong> — no en M1 o M5", mandatory: false },
+    ]
+  },
+  entry: {
+    title: "Modelo de Entrada (Fibonacci)",
+    type: "entry",
+    items: [
+      { id: "e1", text: "Trazado fib del <strong>último impulso</strong> relevante en M15", mandatory: true },
+      { id: "e2", text: "Precio retrocede a zona <strong>0.5 — 0.68</strong> (OTE zone) o toca <strong>0.25</strong>", mandatory: true },
+      { id: "e3", text: "En la zona fib hay un <strong>imbalance (FVG)</strong> o <strong>order block</strong> visible", mandatory: false },
+      { id: "e4", text: "Confirmación de <strong>cambio de estructura (CHoCH)</strong> en M5 antes de entrar", mandatory: true },
+      { id: "e5", text: "No entrar si el precio lleva <strong>más de 3 velas consolidando</strong> en la zona — señal débil", mandatory: false },
+    ]
+  },
+  risk: {
+    title: "Gestión de Riesgo",
+    type: "risk",
+    items: [
+      { id: "r1", text: "<strong>Stop loss detrás de estructura real</strong> — no matemático, detrás del swing point", mandatory: true },
+      { id: "r2", text: "TP identificado en <strong>nivel de liquidez real</strong> (high/low previo, FVG, imbalance)", mandatory: true },
+      { id: "r3", text: "RR mínimo <strong>1:1.5</strong> con el TP real — si no hay espacio, NO hay trade", mandatory: true },
+      { id: "r4", text: "Riesgo máximo <strong>0.5% a 1%</strong> de la cuenta — calculado antes de entrar", mandatory: true },
+      { id: "r5", text: "¿Ya perdí <strong>2 trades hoy</strong>? Si sí: PARAR. No más operaciones hoy.", mandatory: true },
+    ]
+  },
+  session: {
+    title: "Contexto de Sesión",
+    type: "session",
+    items: [],
+  }
+};
+
+const sessionItems = {
+  ny: [
+    { id: "ss1", text: "Esperar los <strong>primeros 15 min</strong> del NY Open (9:30-9:45am) antes de entrar", mandatory: true },
+    { id: "ss2", text: "NY Open marcó <strong>nuevo high o low</strong> respecto a Asia/Londres — dirección clara", mandatory: false },
+    { id: "ss3", text: "No entrar después de <strong>11:30am</strong> — el mercado pierde dirección", mandatory: false },
+  ],
+  "pre-ny": [
+    { id: "ss1", text: "Zona entre <strong>8:00-9:30am</strong> — alta manipulación, ser muy selectivo", mandatory: true },
+    { id: "ss2", text: "Setup visible en <strong>H1 mínimo</strong> — ignorar M5/M15 en pre-NY", mandatory: true },
+    { id: "ss3", text: "Preferir esperar <strong>NY Open</strong> si el setup no es perfecto", mandatory: false },
+  ],
+  asia: [
+    { id: "ss1", text: "Asia opera <strong>rangos estrechos</strong> — reducir expectativa de TP, no buscar grandes movimientos", mandatory: true },
+    { id: "ss2", text: "Mejor oportunidad: <strong>sweep del high/low asiático</strong> en primeras 2 horas", mandatory: false },
+    { id: "ss3", text: "Riesgo reducido: máximo <strong>0.5%</strong> en sesión Asia", mandatory: true },
+  ]
+};
+
+let currentSession = 'ny';
+let checked = {};
+
+function setSession(session) {
+  currentSession = session;
+  document.querySelectorAll('.session-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  renderChecklist();
+}
+
+function renderChecklist() {
+  const grid = document.getElementById('checklistGrid');
+  grid.innerHTML = '';
+  checked = {};
+
+  const sections = ['bias', 'sweep', 'entry', 'risk'];
+  sections.forEach(key => {
+    const section = checklists[key];
+    const card = createCard(section.title, section.type, section.items, key);
+    grid.appendChild(card);
+  });
+
+  // Session card
+  const sessionSection = { title: `Sesión: ${currentSession.toUpperCase()}`, type: 'session' };
+  const sessionCard = createCard(sessionSection.title, 'session', sessionItems[currentSession], 'session');
+  sessionCard.classList.add('full-width');
+  grid.appendChild(sessionCard);
+
+  updateProgress();
+}
+
+function createCard(title, type, items, sectionKey) {
+  const card = document.createElement('div');
+  card.className = `card ${type}`;
+
+  const titleEl = document.createElement('div');
+  titleEl.className = 'card-title';
+  titleEl.innerHTML = `<span class="dot"></span>${title}`;
+  card.appendChild(titleEl);
+
+  items.forEach(item => {
+    checked[item.id] = false;
+    const row = document.createElement('div');
+    row.className = 'check-item';
+    row.id = `row-${item.id}`;
+    row.innerHTML = `
+      <div class="checkbox" id="cb-${item.id}"></div>
+      <div>
+        <div class="check-text">${item.text}</div>
+        ${item.mandatory ? '<div class="mandatory-note">⚠ obligatorio</div>' : ''}
+      </div>
+    `;
+    row.onclick = () => toggle(item.id, item.mandatory);
+    card.appendChild(row);
+  });
+
+  return card;
+}
+
+function toggle(id, mandatory) {
+  checked[id] = !checked[id];
+  const row = document.getElementById(`row-${id}`);
+  const cb = document.getElementById(`cb-${id}`);
+  if (checked[id]) {
+    row.classList.add('checked');
+    cb.innerHTML = '✓';
+  } else {
+    row.classList.remove('checked');
+    cb.innerHTML = '';
+  }
+  updateProgress();
+}
+
+function getAllItems() {
+  const all = [];
+  ['bias', 'sweep', 'entry', 'risk'].forEach(key => {
+    checklists[key].items.forEach(i => all.push(i));
+  });
+  sessionItems[currentSession].forEach(i => all.push(i));
+  return all;
+}
+
+function updateProgress() {
+  const all = getAllItems();
+  const mandatory = all.filter(i => i.mandatory);
+  const total = all.length;
+  const done = all.filter(i => checked[i.id]).length;
+  const mandatoryDone = mandatory.filter(i => checked[i.id]).length;
+  const pct = total > 0 ? (done / total) * 100 : 0;
+
+  document.getElementById('progressCount').textContent = `${done}/${total}`;
+  const fill = document.getElementById('barFill');
+  fill.style.width = pct + '%';
+
+  const verdict = document.getElementById('verdict');
+  const allMandatoryDone = mandatoryDone === mandatory.length;
+
+  if (allMandatoryDone && done === total) {
+    fill.className = 'bar-fill';
+    verdict.className = 'verdict go show';
+    verdict.innerHTML = '✅ SETUP VÁLIDO — Puedes entrar al trade';
+  } else if (allMandatoryDone && done >= total * 0.75) {
+    fill.className = 'bar-fill';
+    verdict.className = 'verdict almost show';
+    verdict.innerHTML = '⚡ CASI LISTO — Todos los obligatorios OK, revisa los opcionales';
+  } else if (!allMandatoryDone && done > 0) {
+    fill.className = 'bar-fill danger';
+    verdict.className = 'verdict wait show';
+    verdict.innerHTML = '🚫 NO ENTRAR — Faltan condiciones obligatorias';
+  } else {
+    fill.className = 'bar-fill';
+    verdict.className = 'verdict';
+  }
+}
+
+function resetAll() {
+  renderChecklist();
+}
+
+renderChecklist();
+</script>
+</body>
+</html>
