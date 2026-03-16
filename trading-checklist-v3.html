@@ -1,0 +1,1184 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TradeCheck — SMC Protocol</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg:       #04040a;
+  --bg1:      #080812;
+  --bg2:      #0d0d1a;
+  --bg3:      #121222;
+  --glass:    rgba(255,255,255,0.03);
+  --glass2:   rgba(255,255,255,0.06);
+  --border:   rgba(255,255,255,0.06);
+  --border2:  rgba(255,255,255,0.1);
+
+  --g:        #00f5a0;
+  --g-dim:    rgba(0,245,160,0.15);
+  --g-glow:   rgba(0,245,160,0.4);
+
+  --r:        #ff2d55;
+  --r-dim:    rgba(255,45,85,0.15);
+
+  --y:        #ffcc00;
+  --y-dim:    rgba(255,204,0,0.15);
+
+  --b:        #5e8aff;
+  --b-dim:    rgba(94,138,255,0.15);
+
+  --p:        #bf5fff;
+  --p-dim:    rgba(191,95,255,0.15);
+
+  --cyan:     #00d4ff;
+  --cyan-dim: rgba(0,212,255,0.15);
+
+  --text:     #f0f0ff;
+  --text2:    #a0a0c0;
+  --text3:    #606080;
+
+  --radius:   12px;
+  --radius-sm: 8px;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Outfit', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── AMBIENT BACKGROUND ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 50% at -10% -10%, rgba(0,245,160,0.07) 0%, transparent 55%),
+    radial-gradient(ellipse 60% 40% at 110% 110%, rgba(94,138,255,0.06) 0%, transparent 55%),
+    radial-gradient(ellipse 40% 30% at 50% 0%, rgba(191,95,255,0.04) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Grain */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.6;
+}
+
+.app { position: relative; z-index: 1; }
+
+/* ══════════════════════════════
+   HEADER
+══════════════════════════════ */
+.header {
+  padding: 20px 28px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.logo-wrap { display: flex; align-items: center; gap: 10px; }
+
+.logo-mark {
+  width: 34px; height: 34px;
+  border-radius: 9px;
+  background: linear-gradient(135deg, var(--g), var(--cyan));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+  box-shadow: 0 0 20px rgba(0,245,160,0.3);
+  flex-shrink: 0;
+}
+
+.logo-text {
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+  color: var(--text);
+}
+.logo-text span { color: var(--g); }
+
+.header-right { display: flex; align-items: center; gap: 10px; }
+
+.live-dot {
+  display: flex; align-items: center; gap: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--text3);
+  letter-spacing: 1px;
+}
+.live-dot::before {
+  content: '';
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--g);
+  box-shadow: 0 0 8px var(--g);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+/* ══════════════════════════════
+   NAV TABS
+══════════════════════════════ */
+.nav {
+  display: flex;
+  gap: 4px;
+  padding: 16px 28px 0;
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0;
+  background: rgba(4,4,10,0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  z-index: 50;
+}
+
+.tab-btn {
+  padding: 10px 18px 12px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text3);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+}
+.tab-btn:hover { color: var(--text2); }
+.tab-btn.active { color: var(--text); border-bottom-color: var(--g); }
+
+/* ══════════════════════════════
+   PANELS
+══════════════════════════════ */
+.panel { display: none; padding: 24px 28px 40px; max-width: 1020px; }
+.panel.active { display: block; animation: fadeIn 0.25s ease; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ══════════════════════════════
+   SESSION PILLS
+══════════════════════════════ */
+.session-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.sess-pill {
+  padding: 7px 16px;
+  border-radius: 100px;
+  border: 1px solid var(--border2);
+  background: var(--glass);
+  color: var(--text3);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.3px;
+}
+.sess-pill:hover { border-color: var(--g); color: var(--g); background: var(--g-dim); }
+.sess-pill.active { border-color: var(--g); color: var(--g); background: var(--g-dim); box-shadow: 0 0 16px rgba(0,245,160,0.15); }
+
+/* ══════════════════════════════
+   PROGRESS BAR
+══════════════════════════════ */
+.progress-card {
+  background: var(--glass);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  backdrop-filter: blur(8px);
+}
+
+.progress-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text3);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.bar-wrap { flex: 1; }
+
+.bar-bg {
+  height: 5px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, var(--g), var(--cyan));
+  box-shadow: 0 0 12px var(--g-glow);
+  transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
+  width: 0%;
+}
+.bar-fill.warn { background: linear-gradient(90deg, var(--y), #ff8c00); box-shadow: 0 0 12px rgba(255,204,0,0.4); }
+.bar-fill.bad  { background: linear-gradient(90deg, var(--r), #ff6b00); box-shadow: 0 0 12px rgba(255,45,85,0.4); }
+
+.progress-score {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--g);
+  white-space: nowrap;
+}
+
+/* ══════════════════════════════
+   CHECKLIST GRID
+══════════════════════════════ */
+.cl-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+@media (max-width: 680px) { .cl-grid { grid-template-columns: 1fr; } }
+.span2 { grid-column: 1/-1; }
+
+/* ══════════════════════════════
+   SECTION CARDS
+══════════════════════════════ */
+.sec-card {
+  background: var(--glass);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+.sec-card:hover { border-color: var(--border2); }
+
+.sec-head {
+  padding: 14px 18px 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.sec-icon {
+  width: 28px; height: 28px;
+  border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.sec-icon.bias   { background: var(--g-dim); }
+.sec-icon.sweep  { background: var(--y-dim); }
+.sec-icon.fib    { background: var(--b-dim); }
+.sec-icon.m1     { background: var(--p-dim); }
+.sec-icon.risk   { background: var(--r-dim); }
+.sec-icon.sess   { background: var(--cyan-dim); }
+
+.sec-name {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text2);
+  letter-spacing: 0.5px;
+  flex: 1;
+  text-transform: uppercase;
+}
+
+.sec-tally {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text3);
+}
+
+.sec-body { padding: 6px 8px 8px; }
+
+/* ══════════════════════════════
+   CHECK ROWS
+══════════════════════════════ */
+.ci {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background 0.15s;
+  position: relative;
+}
+.ci:hover { background: var(--glass2); }
+.ci.done { opacity: 0.45; }
+.ci.done .ci-label { text-decoration: line-through; color: var(--text3); }
+
+.ci-box {
+  width: 18px; height: 18px;
+  border-radius: 5px;
+  border: 1.5px solid var(--border2);
+  flex-shrink: 0;
+  margin-top: 1px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+  font-size: 10px;
+  font-weight: 700;
+  color: #000;
+}
+
+.ci.done .ci-box {
+  background: var(--g);
+  border-color: var(--g);
+  box-shadow: 0 0 10px rgba(0,245,160,0.5);
+}
+
+.ci-right { flex: 1; min-width: 0; }
+
+.ci-label {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text);
+  font-weight: 400;
+}
+.ci-label b  { color: var(--g); font-weight: 600; }
+.ci-label .yt { color: var(--y); font-weight: 600; }
+.ci-label .bt { color: var(--b); font-weight: 600; }
+.ci-label .pt { color: var(--p); font-weight: 600; }
+.ci-label .rt { color: var(--r); font-weight: 600; }
+.ci-label .ct { color: var(--cyan); font-weight: 600; }
+
+.ci-mand {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--r);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-top: 2px;
+  opacity: 0.7;
+}
+
+/* ══════════════════════════════
+   VERDICT
+══════════════════════════════ */
+.verdict-wrap {
+  margin-top: 14px;
+  border-radius: var(--radius);
+  padding: 18px 24px;
+  display: none;
+  align-items: center;
+  gap: 14px;
+  animation: fadeIn 0.3s ease;
+}
+.verdict-wrap.show { display: flex; }
+.verdict-wrap.go    { background: var(--g-dim); border: 1px solid rgba(0,245,160,0.25); }
+.verdict-wrap.almost { background: var(--y-dim); border: 1px solid rgba(255,204,0,0.25); }
+.verdict-wrap.no    { background: var(--r-dim); border: 1px solid rgba(255,45,85,0.25); }
+
+.verdict-icon { font-size: 22px; }
+.verdict-text { flex: 1; }
+.verdict-title {
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: -0.2px;
+  margin-bottom: 2px;
+}
+.verdict-wrap.go    .verdict-title { color: var(--g); }
+.verdict-wrap.almost .verdict-title { color: var(--y); }
+.verdict-wrap.no    .verdict-title { color: var(--r); }
+
+.verdict-sub { font-size: 12px; color: var(--text3); }
+
+/* ══════════════════════════════
+   NOTES SECTION
+══════════════════════════════ */
+.notes-card {
+  margin-top: 14px;
+  background: var(--glass);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.notes-head {
+  padding: 14px 20px 12px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.notes-head-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text2);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  flex: 1;
+}
+
+.notes-body { padding: 16px 20px 20px; }
+
+.fields-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+@media (max-width: 600px) { .fields-grid { grid-template-columns: 1fr 1fr; } }
+
+.field { display: flex; flex-direction: column; gap: 5px; }
+
+.field-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text3);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.field-input {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  color: var(--text);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  outline: none;
+  transition: border-color 0.15s, background 0.15s;
+  width: 100%;
+}
+.field-input:focus {
+  border-color: var(--g);
+  background: rgba(0,245,160,0.04);
+}
+.field-input::placeholder { color: var(--text3); }
+select.field-input { cursor: pointer; }
+
+.field-textarea {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  color: var(--text);
+  font-family: 'Outfit', sans-serif;
+  font-size: 13px;
+  outline: none;
+  resize: vertical;
+  min-height: 72px;
+  width: 100%;
+  transition: border-color 0.15s, background 0.15s;
+  line-height: 1.6;
+}
+.field-textarea:focus {
+  border-color: var(--g);
+  background: rgba(0,245,160,0.04);
+}
+.field-textarea::placeholder { color: var(--text3); }
+
+.btn-row { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+
+.btn {
+  padding: 10px 22px;
+  border-radius: 100px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid var(--border2);
+  background: var(--glass);
+  color: var(--text2);
+  letter-spacing: 0.2px;
+}
+.btn:hover { background: var(--glass2); color: var(--text); }
+
+.btn.primary {
+  background: var(--g);
+  border-color: var(--g);
+  color: #000;
+  box-shadow: 0 0 20px rgba(0,245,160,0.25);
+}
+.btn.primary:hover {
+  box-shadow: 0 0 28px rgba(0,245,160,0.4);
+  transform: translateY(-1px);
+}
+.btn.ghost-r { color: var(--r); }
+.btn.ghost-r:hover { border-color: var(--r); background: var(--r-dim); }
+
+/* ══════════════════════════════
+   HISTORY PANEL
+══════════════════════════════ */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+@media (max-width: 600px) { .stats-grid { grid-template-columns: 1fr 1fr; } }
+
+.stat-tile {
+  background: var(--glass);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  position: relative;
+  overflow: hidden;
+}
+.stat-tile::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+}
+.st-g::before { background: linear-gradient(90deg, var(--g), transparent); }
+.st-r::before { background: linear-gradient(90deg, var(--r), transparent); }
+.st-y::before { background: linear-gradient(90deg, var(--y), transparent); }
+.st-b::before { background: linear-gradient(90deg, var(--b), transparent); }
+
+.stat-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.st-g .stat-num { color: var(--g); }
+.st-r .stat-num { color: var(--r); }
+.st-y .stat-num { color: var(--y); }
+.st-b .stat-num { color: var(--b); }
+
+.stat-lbl {
+  font-size: 11px;
+  color: var(--text3);
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+.section-hdr {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text3);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 64px 20px;
+  color: var(--text3);
+}
+.empty-icon { font-size: 40px; margin-bottom: 12px; opacity: 0.4; }
+.empty-text { font-size: 14px; line-height: 1.6; }
+
+/* HISTORY ITEMS */
+.h-item {
+  background: var(--glass);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  margin-bottom: 10px;
+  transition: border-color 0.15s;
+  animation: fadeIn 0.2s ease;
+}
+.h-item:hover { border-color: var(--border2); }
+
+.h-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.h-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 100px;
+  letter-spacing: 0.5px;
+}
+.h-badge.go    { background: var(--g-dim); color: var(--g); border: 1px solid rgba(0,245,160,0.2); }
+.h-badge.almost { background: var(--y-dim); color: var(--y); border: 1px solid rgba(255,204,0,0.2); }
+.h-badge.no    { background: var(--r-dim); color: var(--r); border: 1px solid rgba(255,45,85,0.2); }
+
+.h-meta {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--text3);
+  flex: 1;
+}
+
+.h-score {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text3);
+}
+
+.del-btn {
+  width: 24px; height: 24px;
+  border-radius: 6px;
+  background: none;
+  border: 1px solid transparent;
+  color: var(--text3);
+  cursor: pointer;
+  font-size: 16px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.del-btn:hover { border-color: var(--r); color: var(--r); background: var(--r-dim); }
+
+.h-fields {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+.h-field {
+  font-size: 12px;
+  color: var(--text3);
+}
+.h-field strong { color: var(--text2); font-weight: 600; }
+
+.h-result-win  { color: var(--g) !important; font-weight: 700 !important; }
+.h-result-loss { color: var(--r) !important; font-weight: 700 !important; }
+.h-result-be   { color: var(--y) !important; font-weight: 700 !important; }
+
+.h-notes {
+  font-size: 12.5px;
+  color: var(--text3);
+  line-height: 1.6;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  font-style: italic;
+}
+
+.h-expand-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--text3);
+  cursor: pointer;
+  margin-top: 8px;
+  background: none;
+  border: none;
+  padding: 0;
+  transition: color 0.15s;
+}
+.h-expand-btn:hover { color: var(--text2); }
+
+.h-detail { display: none; margin-top: 10px; }
+.h-item.open .h-detail { display: block; }
+
+.missed-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--r);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.missed-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.missed-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  padding: 3px 10px;
+  border-radius: 4px;
+  background: var(--r-dim);
+  color: var(--r);
+  border: 1px solid rgba(255,45,85,0.2);
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="logo-wrap">
+      <div class="logo-mark">📈</div>
+      <div class="logo-text">Trade<span>Check</span></div>
+    </div>
+    <div class="header-right">
+      <div class="live-dot">SMC PROTOCOL</div>
+    </div>
+  </div>
+
+  <!-- NAV -->
+  <div class="nav">
+    <button class="tab-btn active" onclick="goTab('checklist')">Checklist</button>
+    <button class="tab-btn" onclick="goTab('history')">Historial</button>
+  </div>
+
+  <!-- ══ CHECKLIST PANEL ══ -->
+  <div class="panel active" id="panel-checklist">
+
+    <div class="session-row">
+      <button class="sess-pill active" onclick="setSess('ny',this)">🗽 NY Open</button>
+      <button class="sess-pill" onclick="setSess('preny',this)">⚡ Pre-NY</button>
+      <button class="sess-pill" onclick="setSess('asia',this)">🌏 Asia</button>
+    </div>
+
+    <div class="progress-card">
+      <span class="progress-label">Progreso</span>
+      <div class="bar-wrap">
+        <div class="bar-bg"><div class="bar-fill" id="barFill"></div></div>
+      </div>
+      <span class="progress-score" id="progScore">0 / 0</span>
+    </div>
+
+    <div class="cl-grid" id="clGrid"></div>
+
+    <div class="verdict-wrap" id="verdict">
+      <div class="verdict-icon" id="v-icon"></div>
+      <div class="verdict-text">
+        <div class="verdict-title" id="v-title"></div>
+        <div class="verdict-sub" id="v-sub"></div>
+      </div>
+    </div>
+
+    <div class="notes-card">
+      <div class="notes-head">
+        <span style="font-size:15px;">📝</span>
+        <span class="notes-head-title">Notas del Trade</span>
+      </div>
+      <div class="notes-body">
+        <div class="fields-grid">
+          <div class="field">
+            <label class="field-label">Instrumento</label>
+            <input class="field-input" id="n-pair" placeholder="NAS100">
+          </div>
+          <div class="field">
+            <label class="field-label">Dirección</label>
+            <select class="field-input" id="n-dir">
+              <option value="">--</option>
+              <option>LONG</option>
+              <option>SHORT</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="field-label">Resultado</label>
+            <select class="field-input" id="n-result">
+              <option value="">-- pendiente</option>
+              <option>WIN</option>
+              <option>LOSS</option>
+              <option>BE (break even)</option>
+              <option>No ejecutado</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="field-label">Entrada</label>
+            <input class="field-input" id="n-entry" placeholder="19,450 / 0.618">
+          </div>
+          <div class="field">
+            <label class="field-label">Stop Loss</label>
+            <input class="field-input" id="n-sl" placeholder="19,380">
+          </div>
+          <div class="field">
+            <label class="field-label">Take Profit</label>
+            <input class="field-input" id="n-tp" placeholder="19,600">
+          </div>
+        </div>
+        <textarea class="field-textarea" id="n-notes" placeholder="Contexto del trade: qué viste, qué dudaste, cómo salió..."></textarea>
+        <div class="btn-row">
+          <button class="btn primary" id="saveBtn" onclick="saveTrade()">Guardar en historial</button>
+          <button class="btn ghost-r" onclick="resetAll()">↺ Reset</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ HISTORY PANEL ══ -->
+  <div class="panel" id="panel-history">
+    <div class="stats-grid" id="statsGrid"></div>
+    <div class="section-hdr">Trades registrados</div>
+    <div id="histList"></div>
+  </div>
+
+</div><!-- .app -->
+
+<script>
+// ════════ DATA ════════
+const SECS = {
+  bias: {
+    label:'Bias & Dirección', icon:'🧭', cls:'bias',
+    items:[
+      {id:'b1', text:'<b>H4 bias definido</b> — HH/HL = bullish · LH/LL = bearish', m:true},
+      {id:'b2', text:'<b>H1 alineado con H4</b> — nunca operar contra el H4', m:true},
+      {id:'b3', text:'<b>Rango del día</b> identificado — high y low de referencia claros', m:true},
+      {id:'b4', text:'Precio en <b>Discount</b> para longs · <b>Premium</b> para shorts', m:true},
+      {id:'b5', text:'Sin noticias de alto impacto · <span class="rt">FOMC/NFP = no operar</span>', m:false},
+    ]
+  },
+  sweep: {
+    label:'Liquidity Sweep', icon:'🌊', cls:'sweep',
+    items:[
+      {id:'s1', text:'<b>Sweep confirmado</b> — barrió highs/lows previos o equal highs/lows', m:true},
+      {id:'s2', text:'Sweep <b>rechazado con fuerza</b> — cerró claramente fuera del nivel', m:true},
+      {id:'s3', text:'Sweep en zona correcta: <span class="yt">Premium → short</span> · <span class="bt">Discount → long</span>', m:true},
+      {id:'s4', text:'Visible en <b>H1 o M15</b> como mínimo', m:false},
+    ]
+  },
+  fib: {
+    label:'Fibonacci OTE', icon:'📐', cls:'fib',
+    items:[
+      {id:'f1', text:'Fib trazado del <b>último impulso relevante en M15</b>', m:true},
+      {id:'f2', text:'Retroceso a zona <span class="bt">0.50 – 0.68</span> (OTE) o toca <span class="bt">0.25</span>', m:true},
+      {id:'f3', text:'En la zona hay <b>FVG</b> o <b>Order Block</b> coincidente', m:false},
+      {id:'f4', text:'<b>CHoCH</b> confirmado en M5 antes de entrar', m:true},
+      {id:'f5', text:'No más de <b>3 velas consolidando</b> en la zona — señal débil si hay más', m:false},
+    ]
+  },
+  m1: {
+    label:'Entrada M1 — Refinamiento', icon:'🎯', cls:'m1',
+    items:[
+      {id:'m1', text:'<span class="pt">Displacement candle en M1</span> — vela fuerte que rompe estructura, cuerpo sólido', m:true},
+      {id:'m2', text:'<span class="pt">FVG creado</span> en M1 por el displacement — precio vuelve a llenarlo', m:true},
+      {id:'m3', text:'<b>Entrada en el FVG</b>, NO en el displacement — esperar retroceso', m:true},
+      {id:'m4', text:'SL debajo del <b>swing low M1</b> que generó el displacement (longs)', m:true},
+      {id:'m5', text:'Si el precio llena el FVG y <b>no rebota en M1</b> → setup invalidado', m:true},
+      {id:'m6', text:'Volumen relativo alto en el displacement vs las 5 velas anteriores', m:false},
+    ]
+  },
+  risk: {
+    label:'Gestión de Riesgo', icon:'🛡️', cls:'risk',
+    items:[
+      {id:'r1', text:'SL detrás de <b>estructura real</b> — detrás del swing point, no matemático', m:true},
+      {id:'r2', text:'TP en <b>liquidez real</b> — high/low previo, FVG superior, imbalance', m:true},
+      {id:'r3', text:'RR mínimo <b>1:1.5</b> con TP real — sin espacio = sin trade', m:true},
+      {id:'r4', text:'Riesgo máximo <b>0.5% – 1%</b> de cuenta calculado antes de entrar', m:true},
+      {id:'r5', text:'¿Ya perdí <b>2 trades hoy</b>? Si sí → <span class="rt">PARAR. Fin del día.</span>', m:true},
+    ]
+  },
+};
+
+const SESS_ITEMS = {
+  ny:[
+    {id:'ss1', text:'Esperar los <b>primeros 15 min</b> del NY Open (9:30–9:45am)', m:true},
+    {id:'ss2', text:'NY Open marcó <b>nuevo high/low</b> vs Asia/Londres', m:false},
+    {id:'ss3', text:'No entrar después de <b>11:30am ET</b>', m:false},
+  ],
+  preny:[
+    {id:'ss1', text:'Zona 8:00–9:30am — <span class="rt">alta manipulación</span>, ser muy selectivo', m:true},
+    {id:'ss2', text:'Setup en <b>H1 mínimo</b> — ignorar M5/M15 aislados', m:true},
+    {id:'ss3', text:'Si no es setup perfecto → esperar NY Open', m:false},
+  ],
+  asia:[
+    {id:'ss1', text:'<b>Rangos estrechos</b> — reducir expectativa de TP', m:true},
+    {id:'ss2', text:'Mejor setup: <b>sweep del high/low asiático</b> en primeras 2h', m:false},
+    {id:'ss3', text:'Riesgo máximo <b>0.5%</b> en sesión Asia', m:true},
+  ],
+};
+
+// ════════ STATE ════════
+let session = 'ny';
+let checked = {};
+let history = [];
+
+function load() {
+  try {
+    const h = localStorage.getItem('tc_hist_v3');
+    if (h) history = JSON.parse(h);
+  } catch(e){}
+}
+function persist() {
+  try { localStorage.setItem('tc_hist_v3', JSON.stringify(history)); } catch(e){}
+}
+
+// ════════ RENDER CHECKLIST ════════
+function renderCL() {
+  const grid = document.getElementById('clGrid');
+  grid.innerHTML = '';
+  checked = {};
+
+  const order = ['bias','sweep','fib','m1','risk'];
+  order.forEach((k,i) => {
+    const sec = SECS[k];
+    const card = mkCard(sec, k);
+    if (k === 'm1' || k === 'risk') card.classList.add('span2');
+    grid.appendChild(card);
+  });
+
+  // Session
+  const sLabel = {ny:'NY Open 🗽', preny:'Pre-NY ⚡', asia:'Asia 🌏'}[session];
+  const sCard = mkCard({label: sLabel, icon:'🕐', cls:'sess', items: SESS_ITEMS[session]}, 'sess');
+  sCard.classList.add('span2');
+  grid.appendChild(sCard);
+
+  updateProg();
+}
+
+function mkCard(sec, key) {
+  const card = document.createElement('div');
+  card.className = 'sec-card';
+
+  const done = sec.items.filter(i => checked[i.id]).length;
+
+  card.innerHTML = `
+    <div class="sec-head">
+      <div class="sec-icon ${sec.cls}">${sec.icon}</div>
+      <div class="sec-name">${sec.label}</div>
+      <div class="sec-tally" id="tally-${key}">${sec.items.length}/${sec.items.length}</div>
+    </div>
+    <div class="sec-body" id="body-${key}"></div>
+  `;
+
+  const body = card.querySelector(`#body-${key}`);
+  sec.items.forEach(item => {
+    checked[item.id] = false;
+    const row = document.createElement('div');
+    row.className = 'ci';
+    row.id = `row-${item.id}`;
+    row.innerHTML = `
+      <div class="ci-box" id="box-${item.id}"></div>
+      <div class="ci-right">
+        <div class="ci-label">${item.text}</div>
+        ${item.m ? '<div class="ci-mand">⚠ obligatorio</div>' : ''}
+      </div>`;
+    row.onclick = () => toggle(item.id, key);
+    body.appendChild(row);
+  });
+
+  return card;
+}
+
+function toggle(id, secKey) {
+  checked[id] = !checked[id];
+  const row = document.getElementById(`row-${id}`);
+  const box = document.getElementById(`box-${id}`);
+  row.classList.toggle('done', checked[id]);
+  box.textContent = checked[id] ? '✓' : '';
+
+  // update tally
+  const sec = secKey === 'sess' ? { items: SESS_ITEMS[session] } : SECS[secKey];
+  if (sec) {
+    const t = document.getElementById(`tally-${secKey}`);
+    if (t) {
+      const d = sec.items.filter(i => checked[i.id]).length;
+      t.textContent = `${d}/${sec.items.length}`;
+    }
+  }
+
+  updateProg();
+}
+
+function allItems() {
+  const all = [];
+  ['bias','sweep','fib','m1','risk'].forEach(k => SECS[k].items.forEach(i => all.push(i)));
+  SESS_ITEMS[session].forEach(i => all.push(i));
+  return all;
+}
+
+function updateProg() {
+  const all = allItems();
+  const mand = all.filter(i => i.m);
+  const done = all.filter(i => checked[i.id]).length;
+  const mandDone = mand.filter(i => checked[i.id]).length;
+  const allMand = mandDone === mand.length;
+  const pct = all.length > 0 ? (done / all.length) * 100 : 0;
+
+  document.getElementById('progScore').textContent = `${done} / ${all.length}`;
+  const fill = document.getElementById('barFill');
+  fill.style.width = pct + '%';
+
+  const v = document.getElementById('verdict');
+  const vi = document.getElementById('v-icon');
+  const vt = document.getElementById('v-title');
+  const vs = document.getElementById('v-sub');
+
+  if (allMand && done === all.length) {
+    fill.className = 'bar-fill';
+    v.className = 'verdict-wrap go show';
+    vi.textContent = '✅';
+    vt.textContent = 'Setup válido — Puedes entrar';
+    vs.textContent = 'Todas las condiciones cumplidas. Ejecuta con confianza.';
+  } else if (allMand && done >= all.length * 0.75) {
+    fill.className = 'bar-fill warn';
+    v.className = 'verdict-wrap almost show';
+    vi.textContent = '⚡';
+    vt.textContent = 'Casi listo';
+    vs.textContent = 'Obligatorios OK. Revisa los opcionales restantes.';
+  } else if (!allMand && done > 0) {
+    fill.className = 'bar-fill bad';
+    v.className = 'verdict-wrap no show';
+    vi.textContent = '🚫';
+    vt.textContent = 'No entrar';
+    vs.textContent = `Faltan ${mand.length - mandDone} condición(es) obligatoria(s).`;
+  } else {
+    fill.className = 'bar-fill';
+    v.className = 'verdict-wrap';
+  }
+}
+
+// ════════ SESSION ════════
+function setSess(s, btn) {
+  session = s;
+  document.querySelectorAll('.sess-pill').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderCL();
+}
+
+// ════════ SAVE ════════
+function getVerdict() {
+  const all = allItems();
+  const mand = all.filter(i => i.m);
+  const done = all.filter(i => checked[i.id]).length;
+  const mandDone = mand.filter(i => checked[i.id]).length;
+  if (mandDone === mand.length && done === all.length) return 'go';
+  if (mandDone === mand.length && done >= all.length * 0.75) return 'almost';
+  return 'no';
+}
+
+function saveTrade() {
+  const all = allItems();
+  const trade = {
+    id: Date.now(),
+    ts: new Date().toLocaleString('es-CO', {dateStyle:'short', timeStyle:'short'}),
+    session,
+    verdict: getVerdict(),
+    score: `${all.filter(i=>checked[i.id]).length}/${all.length}`,
+    pair: document.getElementById('n-pair').value || 'NAS100',
+    dir: document.getElementById('n-dir').value,
+    result: document.getElementById('n-result').value,
+    entry: document.getElementById('n-entry').value,
+    sl: document.getElementById('n-sl').value,
+    tp: document.getElementById('n-tp').value,
+    notes: document.getElementById('n-notes').value,
+    checkedIds: Object.keys(checked).filter(k => checked[k]),
+    allIds: all.map(i => i.id),
+  };
+  history.unshift(trade);
+  persist();
+
+  const btn = document.getElementById('saveBtn');
+  btn.textContent = '✓ Guardado';
+  btn.style.background = 'rgba(0,245,160,0.3)';
+  setTimeout(() => {
+    btn.textContent = 'Guardar en historial';
+    btn.style.background = '';
+  }, 1800);
+
+  renderHistory();
+  goTab('history');
+}
+
+function resetAll() {
+  ['n-pair','n-dir','n-result','n-entry','n-sl','n-tp','n-notes'].forEach(id => {
+    const el = document.getElementById(id);
+    el.value = '';
+  });
+  renderCL();
+}
+
+// ════════ HISTORY ════════
+function allAllItems() {
+  const all = [];
+  ['bias','sweep','fib','m1','risk'].forEach(k => SECS[k].items.forEach(i => all.push(i)));
+  Object.values(SESS_ITEMS).flat().forEach(i => { if (!all.find(x=>x.id===i.id)) all.push(i); });
+  return all;
+}
+
+function renderHistory() {
+  const total = history.length;
+  const wins  = history.filter(t => t.result === 'WIN').length;
+  const loss  = history.filter(t => t.result === 'LOSS').length;
+  const noOk  = history.filter(t => t.verdict === 'no' && t.result && !['No ejecutado',''].includes(t.result)).length;
+
+  document.getElementById('statsGrid').innerHTML = `
+    <div class="stat-tile st-b"><div class="stat-num">${total}</div><div class="stat-lbl">Trades totales</div></div>
+    <div class="stat-tile st-g"><div class="stat-num">${wins}</div><div class="stat-lbl">Wins</div></div>
+    <div class="stat-tile st-r"><div class="stat-num">${loss}</div><div class="stat-lbl">Losses</div></div>
+    <div class="stat-tile st-y"><div class="stat-num">${noOk}</div><div class="stat-lbl">Sin checklist OK</div></div>
+  `;
+
+  const list = document.getElementById('histList');
+  list.innerHTML = '';
+
+  if (!total) {
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-text">Aún no hay trades registrados.<br>Completa el checklist y guarda tu primer trade.</div></div>`;
+    return;
+  }
+
+  const allA = allAllItems();
+  history.forEach(t => {
+    const missed = allA.filter(i => i.m && !t.checkedIds.includes(i.id)).slice(0,6);
+    const resClass = t.result === 'WIN' ? 'h-result-win' : t.result === 'LOSS' ? 'h-result-loss' : 'h-result-be';
+
+    const el = document.createElement('div');
+    el.className = 'h-item';
+    el.innerHTML = `
+      <div class="h-top">
+        <span class="h-badge ${t.verdict}">${t.verdict==='go'?'✅ VÁLIDO':t.verdict==='almost'?'⚡ CASI':'🚫 NO OK'}</span>
+        <span class="h-meta">${t.ts} · ${t.session.toUpperCase()} · ${t.pair}</span>
+        <span class="h-score">${t.score}</span>
+        <button class="del-btn" onclick="delTrade(${t.id},event)">×</button>
+      </div>
+      <div class="h-fields">
+        ${t.dir    ? `<div class="h-field">Dir: <strong>${t.dir}</strong></div>` : ''}
+        ${t.entry  ? `<div class="h-field">Entrada: <strong>${t.entry}</strong></div>` : ''}
+        ${t.sl     ? `<div class="h-field">SL: <strong>${t.sl}</strong></div>` : ''}
+        ${t.tp     ? `<div class="h-field">TP: <strong>${t.tp}</strong></div>` : ''}
+        ${t.result ? `<div class="h-field">Resultado: <strong class="${resClass}">${t.result}</strong></div>` : ''}
+      </div>
+      ${t.notes ? `<div class="h-notes">${t.notes}</div>` : ''}
+      ${missed.length ? `
+        <div class="h-detail">
+          <div class="missed-label">Obligatorios faltantes</div>
+          <div class="missed-tags">${missed.map(i=>`<span class="missed-tag">✗ ${i.id.toUpperCase()}</span>`).join('')}</div>
+        </div>
+        <button class="h-expand-btn" onclick="this.parentElement.classList.toggle('open');this.textContent=this.parentElement.classList.contains('open')?'▲ ocultar':'▾ ver obligatorios faltantes'">▾ ver obligatorios faltantes</button>
+      ` : ''}
+    `;
+    list.appendChild(el);
+  });
+}
+
+function delTrade(id, e) {
+  e.stopPropagation();
+  history = history.filter(t => t.id !== id);
+  persist();
+  renderHistory();
+}
+
+// ════════ TABS ════════
+function goTab(name) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelector(`[onclick="goTab('${name}')"]`).classList.add('active');
+  document.getElementById(`panel-${name}`).classList.add('active');
+  if (name === 'history') renderHistory();
+}
+
+// ════════ INIT ════════
+load();
+renderCL();
+renderHistory();
+</script>
+</body>
+</html>
